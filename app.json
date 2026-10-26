@@ -1,24 +1,44 @@
 {
   "expo": {
-    "name": "GreenScapeApp",
-    "slug": "GreenScapeApp",
+    "name": "GreenScape",
+    "slug": "greenscapeapp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.greenscapeapp",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
-      }
+        "foregroundImage": "./assets/icon.png"
+      },
+      "package": "com.anonymous.greenscapeapp"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
-    }
+      "bundler": "metro",
+      "favicon": "./assets/logo.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "832992ca-0e5f-4846-bc65-40672a5b875b"
+      }
+    },
+    "plugins": [
+      "expo-font",
+      "expo-status-bar",
+      [
+        "expo-gradle-jvmargs",
+        {
+          "xmx": "4096m",
+          "maxMetaspace": "1024m"
+        }
+      ]
+    ]
   }
 }
