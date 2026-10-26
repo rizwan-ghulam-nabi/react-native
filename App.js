@@ -16,6 +16,7 @@ import ProfileScreen from './pages/ProfileScreen';
 import LoginScreen from './pages/LoginScreen';
 import SignupScreen from './pages/SignupScreen';
 import { CartProvider, useCart } from './CartContext';
+import { AuthProvider, useAuth } from './context/AuthContext'; // 👈 IMPORT AUTH
 import Header from './components/Header';
 import ShopByCategory from './components/ShopByCategory'; 
 import TrustBadges from './components/TrustBadges';
@@ -29,6 +30,10 @@ import BrandScroller from './components/BrandScroller.js';
 import JoinCommunity from './components/JoinCommunity.js';
 import AppFooter from './components/AppFooter.js';
 import PolicyScreen from './pages/PolicyScreen';
+import MyOrdersScreen from './pages/MyOrdersScreen';
+import WishlistScreen from './pages/WishlistScreen';
+
+
 
 const { width } = Dimensions.get('window');
 const API_URL = 'http://192.168.18.80:5000/api/products/bestsellers'; 
@@ -78,7 +83,6 @@ const HomeScreen = ({ navigation }) => {
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
       
       <Header 
-        navigation={navigation} 
         cartCount={cart.length} 
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
@@ -165,13 +169,12 @@ const HomeScreen = ({ navigation }) => {
         <BrandScroller /> 
         <JoinCommunity />
         <AppFooter navigation={navigation} /> 
-        
-        {/* 👇 REMOVED Stack.Screen FROM HERE. IT CAUSED THE CRASH */}
       </Animated.ScrollView>
     </SafeAreaView>
   );
 };
 
+// 👇 NEW: Guest Profile Screen (Shows if not logged in)
 const GuestProfileScreen = ({ navigation }) => (
   <SafeAreaView style={styles.safeArea}>
     <View style={styles.guestContainer}>
@@ -191,6 +194,12 @@ const GuestProfileScreen = ({ navigation }) => (
     </View>
   </SafeAreaView>
 );
+
+// 👇 NEW: Dynamic Profile Tab that switches based on Auth state
+const ProfileTabScreen = ({ navigation }) => {
+  const { user } = useAuth(); // Check global auth state
+  return user ? <ProfileScreen navigation={navigation} /> : <GuestProfileScreen navigation={navigation} />;
+};
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -226,32 +235,40 @@ function MainTabs() {
       <Tab.Screen name="Categories" component={CategoriesScreen} />
       <Tab.Screen name="SearchTab" component={HomeScreen} options={{ tabBarLabel: 'Search' }} />
       <Tab.Screen name="Cart" component={CartScreen} />
-      <Tab.Screen name="ProfileTab" component={GuestProfileScreen} options={{ tabBarLabel: 'Profile' }} />
+      
+      {/* 👇 USE THE DYNAMIC PROFILE TAB */}
+      <Tab.Screen name="ProfileTab" component={ProfileTabScreen} options={{ tabBarLabel: 'Profile' }} />
     </Tab.Navigator>
   );
 }
 
 export default function App() {
   return (
-    <CartProvider>
-      <NavigationContainer>
-        <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="MainTabs">
-          <Stack.Screen name="MainTabs" component={MainTabs} />
-          <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="Signup" component={SignupScreen} />
-          <Stack.Screen name="Profile" component={ProfileScreen} />
-          <Stack.Screen name="AllTips" component={AllTipsScreen} />
-          <Stack.Screen name="TipDetails" component={TipDetailsScreen} />
-          
-          {/* 👇 POLICY SCREEN IS NOW REGISTERED CORRECTLY HERE */}
-          <Stack.Screen name="PolicyScreen" component={PolicyScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </CartProvider>
+    // 👇 WRAP WITH AUTH PROVIDER
+    <AuthProvider>
+      <CartProvider>
+        <NavigationContainer>
+          <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="MainTabs">
+            <Stack.Screen name="MainTabs" component={MainTabs} />
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Signup" component={SignupScreen} />
+            <Stack.Screen name="MyOrders" component={MyOrdersScreen} />
+            {/* Kept this just in case you navigate to it directly */}
+            <Stack.Screen name="Profile" component={ProfileScreen} />
+            
+            <Stack.Screen name="AllTips" component={AllTipsScreen} />
+            <Stack.Screen name="TipDetails" component={TipDetailsScreen} />
+            <Stack.Screen name="PolicyScreen" component={PolicyScreen} />
+            <Stack.Screen name="Wishlist" component={WishlistScreen} /> 
+            
+          </Stack.Navigator>
+        </NavigationContainer>
+      </CartProvider>
+    </AuthProvider>
   );
 }
 
-// ... your styles remain exactly the same
+// ... styles remain exactly the same as yours
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: COLORS.background },
   scrollContent: { paddingBottom: 100 },

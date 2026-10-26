@@ -4,6 +4,8 @@ import {
   TouchableOpacity, Platform
 } from 'react-native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { useAuth } from '../context/AuthContext'; // 👈 Import Auth Context
 
 const COLORS = {
   primary: '#235A32', textDark: '#111111', textLight: '#888888',
@@ -11,11 +13,16 @@ const COLORS = {
 };
 
 export default function Header({
-  navigation,
   cartCount = 0,
   searchQuery = '',
   setSearchQuery = () => {}
 }) {
+  const navigation = useNavigation();
+  const { user } = useAuth(); // 👈 Get user state from Context
+
+  // Generate initials if user is logged in (e.g., "RS")
+  const initials = user ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase() : null;
+
   return (
     <View style={styles.container}>
       <View style={styles.topRow}>
@@ -31,7 +38,8 @@ export default function Header({
         </View>
 
         <View style={styles.iconsContainer}>
-          <TouchableOpacity style={styles.iconBtn} onPress={() => navigation?.navigate('Cart')}>
+          {/* Cart Button */}
+          <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.navigate('Cart')}>
             <Feather name="shopping-cart" size={24} color={COLORS.textDark} />
             {cartCount > 0 ? (
               <View style={styles.badge}>
@@ -40,8 +48,22 @@ export default function Header({
             ) : null}
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.profileBtn} onPress={() => navigation?.navigate('ProfileTab')}>
-            <Feather name="user" size={20} color={COLORS.primary} />
+          {/* Profile Button (Dynamic based on login state) */}
+          <TouchableOpacity 
+            style={styles.profileBtn} 
+            onPress={() => {
+              if (user) {
+                navigation.navigate('MainTabs', { screen: 'ProfileTab' });
+              } else {
+                navigation.navigate('Login'); // Send to login if not authenticated
+              }
+            }}
+          >
+            {user ? (
+              <Text style={styles.avatarInitials}>{initials}</Text> 
+            ) : (
+              <Feather name="user" size={20} color={COLORS.primary} />
+            )}
           </TouchableOpacity>
         </View>
 
@@ -95,7 +117,21 @@ const styles = StyleSheet.create({
   iconBtn: { padding: 4, position: 'relative' },
   badge: { position: 'absolute', top: 0, right: 0, backgroundColor: COLORS.primary, borderRadius: 10, width: 16, height: 16, justifyContent: 'center', alignItems: 'center', borderWidth: 1.5, borderColor: COLORS.white },
   badgeText: { color: COLORS.white, fontSize: 9, fontWeight: 'bold' },
-  profileBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: COLORS.lightGreen, justifyContent: 'center', alignItems: 'center' },
+  
+  // 👇 Updated Profile Button Styles
+  profileBtn: { 
+    width: 38, 
+    height: 38, 
+    borderRadius: 19, 
+    backgroundColor: COLORS.lightGreen, 
+    justifyContent: 'center', 
+    alignItems: 'center' 
+  },
+  avatarInitials: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: COLORS.primary,
+  },
 
   searchWrapper: { paddingHorizontal: 20, paddingBottom: 15, paddingTop: 5 },
   searchContainer: {

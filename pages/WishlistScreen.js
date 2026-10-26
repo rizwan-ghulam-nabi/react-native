@@ -16,33 +16,37 @@ const COLORS = {
 };
 
 export default function WishlistScreen({ navigation }) {
-  // Pull the real wishlist from Context instead of using hardcoded items
-  const { wishlist, toggleWishlist, addToCart } = useCart();
+  // 👇 Pull the real wishlist AND cart from Context
+  const { wishlist, toggleWishlist, addToCart, cart } = useCart();
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
       
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.logoContainer}>
-            <MaterialCommunityIcons name="leaf" size={28} color={COLORS.primary} style={{ transform: [{ rotate: '-15deg' }] }} />
-            <View style={{ marginLeft: 5 }}>
-              <Text style={styles.logoText}>GreenScape</Text>
-              <Text style={styles.tagline}>Bring Nature Home</Text>
-            </View>
-          </View>
-          <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.navigate('Cart')}>
-            <Feather name="shopping-cart" size={24} color={COLORS.textDark} />
-            <View style={styles.badge}><Text style={styles.badgeText}>2</Text></View>
+      {/* 👇 CLEAN HEADER WITH BACK BUTTON */}
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <Feather name="arrow-left" size={24} color={COLORS.textDark} />
           </TouchableOpacity>
+          <Text style={styles.headerTitle}>My Wishlist</Text>
         </View>
 
-        {/* Page Title */}
+        <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.navigate('Cart')}>
+          <Feather name="shopping-cart" size={24} color={COLORS.textDark} />
+          {/* 👇 DYNAMIC CART BADGE */}
+          {cart.length > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{cart.length}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        
+        {/* Page Subtitle */}
         <View style={styles.titleSection}>
-          <Text style={styles.pageTitle}>My Wishlist</Text>
           <Text style={styles.pageSubtitle}>{wishlist.length} items saved for later</Text>
         </View>
 
@@ -69,7 +73,7 @@ export default function WishlistScreen({ navigation }) {
                 <View style={styles.detailsContainer}>
                   <Text style={styles.productName} numberOfLines={1}>{item.name}</Text>
                   <Text style={styles.productType}>{item.type}</Text>
-                  <Text style={styles.price}>{item.price}</Text>
+                  <Text style={styles.price}>Rs. {item.price}</Text>
                 </View>
 
                 {/* Actions (Cart & Remove) */}
@@ -95,16 +99,30 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: COLORS.white },
   scrollContent: { paddingBottom: 100 },
 
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: Platform.OS === 'android' ? 15 : 10, paddingBottom: 10 },
-  logoContainer: { flexDirection: 'row', alignItems: 'center' },
-  logoText: { fontSize: 20, fontWeight: '800', color: COLORS.primary, letterSpacing: -0.5 },
-  tagline: { fontSize: 9, color: COLORS.textLight, fontWeight: '500', marginTop: -2 },
+  // New Clean Header
+  header: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    paddingHorizontal: 20, 
+    paddingTop: Platform.OS === 'android' ? 15 : 10, 
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 15,
+  },
+  backBtn: { padding: 5 },
+  headerTitle: { fontSize: 20, fontWeight: '800', color: COLORS.primary },
+  
   iconBtn: { padding: 5 },
   badge: { position: 'absolute', top: 2, right: 2, backgroundColor: COLORS.primary, borderRadius: 10, width: 16, height: 16, justifyContent: 'center', alignItems: 'center', borderWidth: 1.5, borderColor: COLORS.white },
   badgeText: { color: COLORS.white, fontSize: 9, fontWeight: 'bold' },
 
   titleSection: { paddingHorizontal: 20, marginTop: 20, marginBottom: 20 },
-  pageTitle: { fontSize: 28, fontWeight: '800', color: COLORS.primary, marginBottom: 4 },
   pageSubtitle: { fontSize: 14, color: COLORS.textLight, fontWeight: '500' },
 
   listContainer: { paddingHorizontal: 20, gap: 15 },

@@ -1,13 +1,47 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   StyleSheet, Text, View, TextInput, TouchableOpacity, 
-  SafeAreaView, StatusBar, Image, Platform, KeyboardAvoidingView, ScrollView 
+  SafeAreaView, StatusBar, Platform, KeyboardAvoidingView, ScrollView, Alert 
 } from 'react-native';
 import { MaterialCommunityIcons, Feather, FontAwesome, AntDesign } from '@expo/vector-icons';
+import { useAuth } from '../context/AuthContext'; // 👈 Import Auth Context
 
 const COLORS = { primary: '#235A32', white: '#FFFFFF', textDark: '#111111', textLight: '#666666', borderColor: '#E8E8E8', bg: '#F7F9F5' };
 
 export default function LoginScreen({ navigation }) {
+  const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  
+  const { login } = useAuth(); // 👈 Get login function from context
+
+  const handleLogin = () => {
+    // Basic validation
+    if (!email || !password) {
+      Alert.alert("Error", "Please enter both email and password.");
+      return;
+    }
+
+    // Simulate backend authentication
+    // In a real app, you would fetch from your API here and check credentials.
+    // We are using the exact data from your MongoDB screenshot.
+    const loggedInUser = {
+      firstName: 'rizwan',
+      lastName: 'sheikh',
+      email: email || 'sheikhrizwanghulamnabi555@gmail.com',
+      phone: '03027279606',
+      country: 'PK',
+      gender: 'Prefer not to say',
+      role: 'customer',
+      bio: ''
+    };
+
+    login(loggedInUser); // Save to global state
+    
+    // Redirect to Home tab after successful login
+    navigation.navigate('MainTabs', { screen: 'Home' }); 
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.bg} />
@@ -30,14 +64,35 @@ export default function LoginScreen({ navigation }) {
             {/* Email Input */}
             <View style={styles.inputWrapper}>
               <Feather name="mail" size={20} color={COLORS.textLight} style={styles.inputIcon} />
-              <TextInput placeholder="Email Address" style={styles.input} placeholderTextColor={COLORS.textLight} />
+              <TextInput 
+                placeholder="Email Address" 
+                style={styles.input} 
+                placeholderTextColor={COLORS.textLight} 
+                keyboardType="email-address"
+                autoCapitalize="none"
+                value={email}
+                onChangeText={setEmail}
+              />
             </View>
 
-            {/* Password Input */}
+            {/* Password Input with Eye Toggle */}
             <View style={styles.inputWrapper}>
               <Feather name="lock" size={20} color={COLORS.textLight} style={styles.inputIcon} />
-              <TextInput placeholder="Password" secureTextEntry style={styles.input} placeholderTextColor={COLORS.textLight} />
-              <Feather name="eye" size={20} color={COLORS.textLight} />
+              <TextInput 
+                placeholder="Password" 
+                secureTextEntry={!showPassword} 
+                style={styles.input} 
+                placeholderTextColor={COLORS.textLight} 
+                value={password}
+                onChangeText={setPassword}
+              />
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                <Feather 
+                  name={showPassword ? "eye-off" : "eye"} 
+                  size={20} 
+                  color={COLORS.textLight} 
+                />
+              </TouchableOpacity>
             </View>
 
             {/* Remember Me & Forgot Password */}
@@ -52,7 +107,7 @@ export default function LoginScreen({ navigation }) {
             </View>
 
             {/* Sign In Button */}
-            <TouchableOpacity style={styles.primaryBtn} onPress={() => navigation.navigate('ProfileTab')}>
+            <TouchableOpacity style={styles.primaryBtn} onPress={handleLogin}>
               <Text style={styles.primaryBtnText}>Sign In</Text>
               <Feather name="arrow-right" size={20} color={COLORS.white} />
             </TouchableOpacity>
