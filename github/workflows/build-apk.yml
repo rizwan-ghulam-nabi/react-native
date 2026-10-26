@@ -1,7 +1,4 @@
-     - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          packages: 'platform-tools'
+name: Build Android APK
 
 on:
   push:
@@ -34,6 +31,8 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools'
 
       - name: Expo Prebuild
         run: npx expo prebuild --platform android
