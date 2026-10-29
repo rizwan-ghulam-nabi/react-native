@@ -16,7 +16,7 @@ const COLORS = {
 
 const STATS = [
   { id: 1, icon: 'star', iconType: 'Feather', value: '50,000+', label: 'Happy Gardeners' },
-  { id: 2, icon: 'leaf', iconType: 'Feather', value: '1M+', label: 'Plants Delivered' },
+  { id: 2, icon: 'feather', iconType: 'Feather', value: '1M+', label: 'Plants Delivered' },
   { id: 3, icon: 'globe', iconType: 'Feather', value: '30+', label: 'Countries Served' },
   { id: 4, icon: 'award', iconType: 'Feather', value: '4.9', label: 'Average Rating', hasStar: true },
   { id: 5, icon: 'shield', iconType: 'Feather', value: '100%', label: 'Secure Payments' },

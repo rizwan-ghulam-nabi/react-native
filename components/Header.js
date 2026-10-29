@@ -1,15 +1,20 @@
-import React from 'react';
+
 import {
   StyleSheet, Text, View, TextInput,
-  TouchableOpacity, Platform
+  TouchableOpacity, Platform, ImageBackground
 } from 'react-native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { useAuth } from '../context/AuthContext'; // 👈 Import Auth Context
+import { useAuth } from '../context/AuthContext'; 
 
 const COLORS = {
-  primary: '#235A32', textDark: '#111111', textLight: '#888888',
-  lightGreen: '#F3F9F4', white: '#FFFFFF'
+  primary: '#1B4D2E', // Darker green matching the image
+  leafGreen: '#689F38', // Lighter green for "Scape"
+  textDark: '#111111', 
+  textLight: '#666666',
+  lightGreen: '#F3F9F4', 
+  white: '#FFFFFF',
+  bgDecor: '#F2F7F4' // Very light green for header background
 };
 
 export default function Header({
@@ -18,139 +23,164 @@ export default function Header({
   setSearchQuery = () => {}
 }) {
   const navigation = useNavigation();
-  const { user } = useAuth(); // 👈 Get user state from Context
+  const { user } = useAuth(); 
 
-  // Generate initials if user is logged in (e.g., "RS")
   const initials = user ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase() : null;
 
   return (
     <View style={styles.container}>
-      <View style={styles.topRow}>
-
-        <View style={styles.logoContainer}>
-          <View style={styles.logoTextRow}>
-            <MaterialCommunityIcons name="leaf" size={26} color={COLORS.primary} />
-            <Text style={styles.logoText}>
-              Green<Text style={styles.logoTextBlack}>Scape</Text>
-            </Text>
-          </View>
-          <Text style={styles.tagline}>Plants • Decor • A Greener Tomorrow</Text>
-        </View>
-
-        <View style={styles.iconsContainer}>
-          {/* Cart Button */}
-          <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.navigate('Cart')}>
-            <Feather name="shopping-cart" size={24} color={COLORS.textDark} />
-            {cartCount > 0 ? (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{String(cartCount)}</Text>
-              </View>
-            ) : null}
-          </TouchableOpacity>
-
-          {/* Profile Button (Dynamic based on login state) */}
+      {/* Decorative Background Leaves (Optional: replace URI with local asset) */}
+      <ImageBackground 
+        source={{ uri: 'https://img.freepik.com/free-vector/hand-drawn-tropical-leaves-background_23-2148097092.jpg' }} 
+        style={styles.bgImage}
+        imageStyle={{ opacity: 0.15, resizeMode: 'cover' }}
+      >
+        
+        {/* TOP ROW: Menu, Logo, Icons */}
+        <View style={styles.topRow}>
+          
+          {/* Left: Hamburger Menu */}
           <TouchableOpacity 
-            style={styles.profileBtn} 
-            onPress={() => {
-              if (user) {
-                navigation.navigate('MainTabs', { screen: 'ProfileTab' });
-              } else {
-                navigation.navigate('Login'); // Send to login if not authenticated
-              }
-            }}
+            style={styles.menuBtn}
+            onPress={() => navigation.navigate('Categories')} // Change to your Drawer or Menu screen
           >
-            {user ? (
-              <Text style={styles.avatarInitials}>{initials}</Text> 
-            ) : (
-              <Feather name="user" size={20} color={COLORS.primary} />
-            )}
+            <Feather name="menu" size={28} color={COLORS.primary} />
           </TouchableOpacity>
-        </View>
 
-      </View>
+          {/* Center: Logo */}
+          <View style={styles.logoContainer}>
+            <View style={styles.logoTextRow}>
+              <Text style={styles.logoTextMain}>Green</Text>
+              <View style={styles.logoScapeWrapper}>
+                <MaterialCommunityIcons 
+                  name="leaf" 
+                  size={20} 
+                  color={COLORS.leafGreen} 
+                  style={styles.logoLeaf} 
+                />
+                <Text style={styles.logoTextScape}>Scape</Text>
+              </View>
+            </View>
+            <Text style={styles.tagline}>PLANTS • GARDEN • HOME</Text>
+          </View>
 
-      <View style={styles.searchWrapper}>
-        <View style={styles.searchContainer}>
-          <Feather name="search" size={18} color={COLORS.textLight} style={styles.searchIcon} />
-          <TextInput
-            placeholder="Search for plants, pots, tools..."
-            placeholderTextColor={COLORS.textLight}
-            style={styles.searchInput}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            underlineColorAndroid="transparent"
-            autoCorrect={false}
-          />
-          {searchQuery && searchQuery.length > 0 ? (
-            <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Feather name="x-circle" size={18} color={COLORS.textLight} />
+          {/* Right: Search & Cart Icons */}
+          <View style={styles.iconsContainer}>
+            <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.navigate('SearchTab')}>
+              <Feather name="search" size={24} color={COLORS.primary} />
             </TouchableOpacity>
-          ) : null}
+
+            <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.navigate('Cart')}>
+              <Feather name="shopping-cart" size={24} color={COLORS.primary} />
+              {cartCount > 0 && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{String(cartCount)}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      </ImageBackground>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: COLORS.white,
-    paddingTop: Platform.OS === 'android' ? 10 : 0,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F5F5F5',
+    backgroundColor: COLORS.bgDecor,
+    paddingTop: Platform.OS === 'android' ? 35 : 10, // Adjust for notch
     zIndex: 10,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    overflow: 'hidden',
+  },
+  bgImage: {
+    width: '100%',
+    paddingBottom: 15,
   },
   topRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
   },
-  logoContainer: { justifyContent: 'center' },
-  logoTextRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  logoText: { fontSize: 24, fontWeight: '800', color: COLORS.primary, letterSpacing: -0.5 },
-  logoTextBlack: { color: COLORS.textDark },
-  tagline: { fontSize: 10, color: COLORS.textLight, fontWeight: '500', marginTop: 2, marginLeft: 2 },
-
-  iconsContainer: { flexDirection: 'row', alignItems: 'center', gap: 16 },
-  iconBtn: { padding: 4, position: 'relative' },
-  badge: { position: 'absolute', top: 0, right: 0, backgroundColor: COLORS.primary, borderRadius: 10, width: 16, height: 16, justifyContent: 'center', alignItems: 'center', borderWidth: 1.5, borderColor: COLORS.white },
-  badgeText: { color: COLORS.white, fontSize: 9, fontWeight: 'bold' },
   
-  // 👇 Updated Profile Button Styles
-  profileBtn: { 
-    width: 38, 
-    height: 38, 
-    borderRadius: 19, 
-    backgroundColor: COLORS.lightGreen, 
-    justifyContent: 'center', 
-    alignItems: 'center' 
-  },
-  avatarInitials: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: COLORS.primary,
+  // Menu Button
+  menuBtn: {
+    padding: 5,
+    width: 40, // Fixed width to balance center logo
   },
 
-  searchWrapper: { paddingHorizontal: 20, paddingBottom: 15, paddingTop: 5 },
-  searchContainer: {
-    flexDirection: 'row',
+  // Logo Section
+  logoContainer: { 
     alignItems: 'center',
-    backgroundColor: '#F7F9F7',
-    borderRadius: 25,
-    paddingHorizontal: 16,
-    height: 52,
-    borderWidth: 0,
-    borderColor: 'transparent',
+    justifyContent: 'center',
+    marginTop: 10,
   },
-  searchIcon: { marginRight: 12 },
-  searchInput: {
-    flex: 1,
-    fontSize: 14,
-    color: COLORS.textDark,
-    height: '100%',
-    borderWidth: 0,
-    outlineStyle: 'none',
+  logoTextRow: { 
+    flexDirection: 'row', 
+    alignItems: 'flex-end',
+    marginBottom: 4,
+  },
+  logoTextMain: { 
+    fontSize: 28, 
+    fontWeight: '900', 
+    color: COLORS.primary, 
+    letterSpacing: -0.8 
+  },
+  logoScapeWrapper: {
+    position: 'relative',
+  },
+  logoTextScape: { 
+    fontSize: 28, 
+    fontWeight: '900', 
+    color: COLORS.leafGreen, 
+    letterSpacing: -0.8 
+  },
+  logoLeaf: {
+    position: 'absolute',
+    top: -16,
+    right: 8,
+    transform: [{ rotate: '15deg' }],
+  },
+  tagline: { 
+    fontSize: 9, 
+    fontWeight: '600', 
+    color: COLORS.textLight, 
+    letterSpacing: 2, 
+    marginTop: 2,
+    textTransform: 'uppercase',
+  },
+
+  // Icons Section
+  iconsContainer: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    gap: 15,
+    width: 80, // Fixed width to balance center logo
+    justifyContent: 'flex-end',
+  },
+  iconBtn: { 
+    padding: 4, 
+    position: 'relative' 
+  },
+  badge: { 
+    position: 'absolute', 
+    top: -2, 
+    right: -4, 
+    backgroundColor: COLORS.leafGreen, 
+    borderRadius: 10, 
+    width: 18, 
+    height: 18, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    borderWidth: 2, 
+    borderColor: COLORS.bgDecor 
+  },
+  badgeText: { 
+    color: COLORS.white, 
+    fontSize: 9, 
+    fontWeight: 'bold' 
   },
 });

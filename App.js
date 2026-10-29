@@ -9,6 +9,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
+// Components & Pages
 import HeroCarousel from './components/HeroCarousel';
 import CategoriesScreen from './pages/CategoriesScreen';
 import CartScreen from './pages/CartScreen';
@@ -16,7 +17,7 @@ import ProfileScreen from './pages/ProfileScreen';
 import LoginScreen from './pages/LoginScreen';
 import SignupScreen from './pages/SignupScreen';
 import { CartProvider, useCart } from './CartContext';
-import { AuthProvider, useAuth } from './context/AuthContext'; // 👈 IMPORT AUTH
+import { AuthProvider, useAuth } from './context/AuthContext';
 import Header from './components/Header';
 import ShopByCategory from './components/ShopByCategory'; 
 import TrustBadges from './components/TrustBadges';
@@ -32,17 +33,29 @@ import AppFooter from './components/AppFooter.js';
 import PolicyScreen from './pages/PolicyScreen';
 import MyOrdersScreen from './pages/MyOrdersScreen';
 import WishlistScreen from './pages/WishlistScreen';
-
+import SearchScreen from './pages/SearchScreen';
+import ProductsScreen from './pages/ProductsScreen';
+import CheckoutScreen from './pages/CheckoutScreen';
+import AddressScreen from './pages/AddressScreen';
+import VerificationScreen from './pages/VerificationScreen';
 
 
 const { width } = Dimensions.get('window');
 const API_URL = 'http://192.168.18.80:5000/api/products/bestsellers'; 
 
 const COLORS = {
-  primary: '#235A32', background: '#FFFFFF', textDark: '#111111', 
-  textLight: '#888888', lightGreen: '#F3F9F4', borderColor: '#EBEBEB',
+  primary: '#235A32', 
+  background: '#FFFFFF', 
+  white: '#FFFFFF',
+  textDark: '#111111', 
+  textLight: '#888888', 
+  lightGreen: '#F3F9F4', 
+  borderColor: '#EBEBEB',
 };
 
+// ==========================================
+// 1. HOME SCREEN
+// ==========================================
 const HomeScreen = ({ navigation }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -174,7 +187,9 @@ const HomeScreen = ({ navigation }) => {
   );
 };
 
-// 👇 NEW: Guest Profile Screen (Shows if not logged in)
+// ==========================================
+// 2. GUEST & PROFILE TABS
+// ==========================================
 const GuestProfileScreen = ({ navigation }) => (
   <SafeAreaView style={styles.safeArea}>
     <View style={styles.guestContainer}>
@@ -195,56 +210,68 @@ const GuestProfileScreen = ({ navigation }) => (
   </SafeAreaView>
 );
 
-// 👇 NEW: Dynamic Profile Tab that switches based on Auth state
 const ProfileTabScreen = ({ navigation }) => {
-  const { user } = useAuth(); // Check global auth state
+  const { user } = useAuth(); 
   return user ? <ProfileScreen navigation={navigation} /> : <GuestProfileScreen navigation={navigation} />;
 };
 
+// ==========================================
+// 3. TAB NAVIGATOR (The Bottom Bar)
+// ==========================================
 const Tab = createBottomTabNavigator();
-const Stack = createNativeStackNavigator();
 
 function MainTabs() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: COLORS.primary,
-        tabBarInactiveTintColor: '#A0A0A0',
+        tabBarActiveTintColor: '#6BBF59',
+        tabBarInactiveTintColor: '#7A8F82',
         tabBarStyle: styles.tabBar,
         tabBarLabelStyle: styles.tabLabel,
         tabBarIcon: ({ color, focused }) => {
           let iconName;
-          if (route.name === 'Home') iconName = focused ? 'home' : 'home-outline';
-          else if (route.name === 'Categories') iconName = focused ? 'grid' : 'grid-outline';
-          else if (route.name === 'SearchTab') iconName = 'search-outline';
-          else if (route.name === 'Cart') iconName = focused ? 'cart' : 'cart-outline';
-          else if (route.name === 'ProfileTab') iconName = focused ? 'person' : 'person-outline';
-          return <Ionicons name={iconName} size={22} color={color} />;
+
+          if (route.name === 'Home') {
+            iconName = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'Categories') {
+            iconName = focused ? 'grid' : 'grid-outline';
+          } else if (route.name === 'SearchTab') {
+            iconName = 'search-outline';
+          } else if (route.name === 'Cart') {
+            iconName = focused ? 'cart' : 'cart-outline';
+          } else if (route.name === 'ProfileTab') {
+            iconName = focused ? 'person' : 'person-outline';
+          }
+
+          return (
+            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+              <Ionicons name={iconName} size={22} color={color} />
+              {/* Only show indicator for active tabs */}
+              {focused && (
+                <View style={styles.activeIndicator} />
+              )}
+            </View>
+          );
         },
       })}
     >
-      <Tab.Screen name="Home" component={HomeScreen} options={{
-        tabBarIcon: ({ focused }) => (
-          <View style={{ alignItems: 'center' }}>
-            <Ionicons name={focused ? 'home' : 'home-outline'} size={22} color={focused ? COLORS.primary : '#A0A0A0'} />
-            {focused && <View style={{ width: 20, height: 2, backgroundColor: COLORS.primary, marginTop: 4, borderRadius: 2 }} />}
-          </View>
-        )
-      }} />
+      <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Categories" component={CategoriesScreen} />
-      <Tab.Screen name="SearchTab" component={HomeScreen} options={{ tabBarLabel: 'Search' }} />
+      <Tab.Screen name="SearchTab" component={SearchScreen} options={{ tabBarLabel: 'Search' }} />
       <Tab.Screen name="Cart" component={CartScreen} />
-      
-      {/* 👇 USE THE DYNAMIC PROFILE TAB */}
       <Tab.Screen name="ProfileTab" component={ProfileTabScreen} options={{ tabBarLabel: 'Profile' }} />
     </Tab.Navigator>
   );
 }
 
+// ==========================================
+// 4. THE ROOT STACK (Handles screens outside tabs)
+// ==========================================
+const Stack = createNativeStackNavigator();
+
 export default function App() {
   return (
-    // 👇 WRAP WITH AUTH PROVIDER
     <AuthProvider>
       <CartProvider>
         <NavigationContainer>
@@ -253,14 +280,15 @@ export default function App() {
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="Signup" component={SignupScreen} />
             <Stack.Screen name="MyOrders" component={MyOrdersScreen} />
-            {/* Kept this just in case you navigate to it directly */}
-            <Stack.Screen name="Profile" component={ProfileScreen} />
-            
+            <Stack.Screen name="Wishlist" component={WishlistScreen} />
             <Stack.Screen name="AllTips" component={AllTipsScreen} />
             <Stack.Screen name="TipDetails" component={TipDetailsScreen} />
             <Stack.Screen name="PolicyScreen" component={PolicyScreen} />
-            <Stack.Screen name="Wishlist" component={WishlistScreen} /> 
-            
+            <Stack.Screen name="Profile" component={ProfileScreen} />
+            <Stack.Screen name="Products" component={ProductsScreen} />
+            <Stack.Screen name="Checkout" component={CheckoutScreen} />
+            <Stack.Screen name="Address" component={AddressScreen} />
+            <Stack.Screen name="Verification" component={VerificationScreen} />
           </Stack.Navigator>
         </NavigationContainer>
       </CartProvider>
@@ -268,7 +296,9 @@ export default function App() {
   );
 }
 
-// ... styles remain exactly the same as yours
+// ==========================================
+// 5. STYLES
+// ==========================================
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: COLORS.background },
   scrollContent: { paddingBottom: 100 },
@@ -302,23 +332,32 @@ const styles = StyleSheet.create({
   oldPrice: { fontSize: 10, color: COLORS.textLight, textDecorationLine: 'line-through' },
   ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 2 },
   ratingText: { fontSize: 10, color: COLORS.textLight, marginLeft: 4 },
-  offersContainer: { paddingHorizontal: 20, gap: 15 },
-  offerCard: { width: 200, padding: 20, borderRadius: 16, justifyContent: 'center', position: 'relative' },
-  offerTitle: { fontSize: 15, fontWeight: '700', color: COLORS.primary, marginBottom: 4 },
-  offerSub: { fontSize: 11, color: '#555', width: '80%' },
-  offerCircle: { position: 'absolute', bottom: 15, right: 15, width: 24, height: 24, borderRadius: 12, backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center' },
-  trustContainer: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 20, marginTop: 30, backgroundColor: '#FFF', paddingVertical: 15, borderTopWidth: 1, borderBottomWidth: 1, borderColor: '#F5F5F5' },
-  trustItem: { alignItems: 'center', width: '23%' },
-  trustIconBg: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.lightGreen, justifyContent: 'center', alignItems: 'center', marginBottom: 8 },
-  trustText: { fontSize: 10, textAlign: 'center', fontWeight: '600', color: '#444', lineHeight: 14 },
-  communityBanner: { marginHorizontal: 20, marginTop: 25, backgroundColor: COLORS.primary, borderRadius: 16, padding: 20, flexDirection: 'row', alignItems: 'center', overflow: 'hidden' },
-  communityBgIcon: { position: 'absolute', left: -10, bottom: -10 },
-  communityTitle: { color: '#FFF', fontSize: 13, fontWeight: '700', marginBottom: 4 },
-  communityDesc: { color: '#D1E8D5', fontSize: 9, lineHeight: 12 },
-  communityBtn: { backgroundColor: '#FFF', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 20, marginLeft: 10 },
-  communityBtnText: { color: COLORS.primary, fontSize: 10, fontWeight: 'bold' },
-  tabBar: { position: 'absolute', bottom: 0, left: 0, right: 0, elevation: 0, backgroundColor: COLORS.white, borderTopWidth: 1, borderTopColor: COLORS.borderColor, height: 70, paddingBottom: 15, paddingTop: 10 },
-  tabLabel: { fontSize: 10, fontWeight: '600' },
+
+  tabBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    elevation: 0,
+    backgroundColor: '#0F1A14',        // Dark black-green background
+    borderTopWidth: 1,
+    borderTopColor: '#1F3326',         // Subtle green divider
+    height: 70,
+    paddingBottom: 15,
+    paddingTop: 10,
+  },
+  tabLabel: { 
+    fontSize: 10, 
+    fontWeight: '600' 
+  },
+  activeIndicator: {
+    width: 20,
+    height: 2,
+    backgroundColor: '#6BBF59',        // Bright green accent
+    marginTop: 4,
+    borderRadius: 2,
+  },
+
   guestContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 30 },
   guestIconBg: { width: 100, height: 100, borderRadius: 50, backgroundColor: COLORS.lightGreen, justifyContent: 'center', alignItems: 'center', marginBottom: 20 },
   guestTitle: { fontSize: 24, fontWeight: '800', color: COLORS.primary, marginBottom: 10, textAlign: 'center' },

@@ -1,45 +1,62 @@
 import React, { useState } from 'react';
 import { 
   StyleSheet, Text, View, TextInput, TouchableOpacity, 
-  SafeAreaView, StatusBar, Platform, KeyboardAvoidingView, ScrollView, Alert 
+  SafeAreaView, StatusBar, Platform, KeyboardAvoidingView, ScrollView, Alert, ActivityIndicator 
 } from 'react-native';
 import { MaterialCommunityIcons, Feather, FontAwesome, AntDesign } from '@expo/vector-icons';
-import { useAuth } from '../context/AuthContext'; // 👈 Import Auth Context
+import { useAuth } from '../context/AuthContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const COLORS = { primary: '#235A32', white: '#FFFFFF', textDark: '#111111', textLight: '#666666', borderColor: '#E8E8E8', bg: '#F7F9F5' };
+const API_URL = 'http://192.168.18.80:5000/api/auth/login'; // 👈 Your backend login route
 
 export default function LoginScreen({ navigation }) {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false); // 👈 Added loading state
   
-  const { login } = useAuth(); // 👈 Get login function from context
+  const { login } = useAuth(); 
 
-  const handleLogin = () => {
-    // Basic validation
+  const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert("Error", "Please enter both email and password.");
       return;
     }
 
-    // Simulate backend authentication
-    // In a real app, you would fetch from your API here and check credentials.
-    // We are using the exact data from your MongoDB screenshot.
-    const loggedInUser = {
-      firstName: 'rizwan',
-      lastName: 'sheikh',
-      email: email || 'sheikhrizwanghulamnabi555@gmail.com',
-      phone: '03027279606',
-      country: 'PK',
-      gender: 'Prefer not to say',
-      role: 'customer',
-      bio: ''
-    };
+    setIsLoading(true);
+    try {
+      // 👈 1. Call the real backend
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
 
-    login(loggedInUser); // Save to global state
-    
-    // Redirect to Home tab after successful login
-    navigation.navigate('MainTabs', { screen: 'Home' }); 
+      const data = await response.json();
+
+      if (response.ok) {
+        // 👈 2. Save the REAL JWT token to AsyncStorage
+        // Note: Make sure your backend returns { token: "..." } or { accessToken: "..." }
+        const token = data.token || data.accessToken; 
+        
+        await AsyncStorage.setItem('@user_token', token); 
+        console.log("✅ REAL TOKEN SAVED:", token); // 👈 ADD THIS LINE
+        // 👈 3. Save user details to AuthContext
+        login(data.user); 
+        
+        // 4. Navigate to Home
+        navigation.navigate('MainTabs', { screen: 'Home' }); 
+      } else {
+        // Alert.alert("Login Failed", data.message || "Invalid email or password");
+        Alert.alert("Login Failed", data.error || data.message || "Invalid credentials");
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Connection Error", "Could not connect to the server.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -107,9 +124,15 @@ export default function LoginScreen({ navigation }) {
             </View>
 
             {/* Sign In Button */}
-            <TouchableOpacity style={styles.primaryBtn} onPress={handleLogin}>
-              <Text style={styles.primaryBtnText}>Sign In</Text>
-              <Feather name="arrow-right" size={20} color={COLORS.white} />
+            <TouchableOpacity style={styles.primaryBtn} onPress={handleLogin} disabled={isLoading}>
+              {isLoading ? (
+                <ActivityIndicator color={COLORS.white} />
+              ) : (
+                <>
+                  <Text style={styles.primaryBtnText}>Sign In</Text>
+                  <Feather name="arrow-right" size={20} color={COLORS.white} />
+                </>
+              )}
             </TouchableOpacity>
 
             {/* Divider */}
@@ -146,6 +169,7 @@ export default function LoginScreen({ navigation }) {
   );
 }
 
+// ... Keep your exact same styles from before ...
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: COLORS.bg },
   scrollContent: { paddingBottom: 40 },
